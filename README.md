@@ -31,9 +31,32 @@ Your phone also needs an IR emitter. Emberlink checks `ConsumerIrManager.hasIrEm
 - **Screen stays awake** while the remote is open
 - **Number pad, discrete HDMI inputs, discrete power on/off** on a second tab
 - **Fire OS system menus** — settings, recent apps, network, Bluetooth, resolution, VoiceView, Alexa
+- **Type on TV** — a keyboard that drives the TV's on-screen keyboard for you, so you can search without thumbing the D-pad letter by letter
 - **Danger zone** — reboot and factory reset exist as real codes and fire with no prompt on the TV, so they sit behind a confirmation dialog here
 - **Code Lab** — brute-force sweeper for any code not published for your panel
 - **Export** your discovered codes as JSON *and* as a Flipper Zero `.ir` file
+
+---
+
+## Type on TV
+
+Infrared has no command that carries text. The protocol is discrete key presses and nothing else, so no IR app can "send a string" to a Fire TV — anything claiming otherwise is using the network.
+
+What Emberlink does instead is drive the TV's **own** on-screen keyboard. Typing becomes a pathfinding problem: work out the D-pad route from the highlighted cell to the letter you want, walk it, press OK, repeat. The Fire TV search keyboard is a 6×6 alphanumeric grid — 26 letters plus 10 digits is exactly 36 cells — so the routes are short and predictable.
+
+1. Open a search box on the TV
+2. Type what you want on the **Type** tab and hit **Type it**
+3. Watch it walk the keyboard
+
+Two things to know:
+
+**It's flying blind.** There is no feedback channel from the TV over IR, so the app tracks the highlight by dead reckoning from what it has sent. The grid on screen shows where Emberlink *thinks* the cursor is. If the TV disagrees — you nudged the real remote, or a press got dropped — tap the cell that's actually highlighted to resync.
+
+**Layouts vary.** Amazon has shipped more than one keyboard arrangement, and a layout that's off by one column will type confident nonsense. The grid is editable: one line per row, one character per cell, `_` for space and `<` for backspace. Match it to what's actually on your screen.
+
+Turning **wrap at the edges** on cuts long jumps short where the keyboard wraps around — `a` to `9` drops from 11 presses to 3. Turn it off if your keyboard stops at the edges instead.
+
+If letters start landing wrong partway through a long word, raise the gap between presses. A dropped press corrupts everything after it, because the cursor position the app is tracking no longer matches reality.
 
 ---
 
