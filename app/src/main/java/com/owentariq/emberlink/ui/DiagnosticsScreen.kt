@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.owentariq.emberlink.data.AddressPreset
+import com.owentariq.emberlink.data.HuntCandidate
 import com.owentariq.emberlink.data.Settings
 import kotlinx.coroutines.delay
 
@@ -59,6 +60,9 @@ fun DiagnosticsScreen(
     framesSent: Int,
     onBlast: () -> Unit,
     onSettingsChanged: () -> Unit,
+    onHuntFire: (HuntCandidate) -> Unit,
+    onHuntAdopt: (HuntCandidate) -> Unit,
+    adopted: HuntCandidate?,
 ) {
     var blasting by remember { mutableStateOf(false) }
     var blastCount by remember { mutableIntStateOf(0) }
@@ -84,10 +88,24 @@ fun DiagnosticsScreen(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 16.dp),
     ) {
-        Text("Diagnostics", color = TextPrimary, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
+        // Auto-Hunt goes first: it is the answer for "nothing works" and requires no
+        // understanding of anything below it.
+        AutoHuntSection(
+            enabled = hasEmitter,
+            onFire = onHuntFire,
+            onAdopt = onHuntAdopt,
+            adopted = adopted,
+        )
+
+        Spacer(Modifier.height(28.dp))
         Text(
-            "Infrared is one-way. The app never hears back from the TV, so it cannot tell " +
-                "you whether a code landed. Work through this page in order.",
+            "Manual diagnostics",
+            color = TextPrimary,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Text(
+            "Only needed if Find my TV came up empty.",
             color = TextMuted,
             fontSize = 13.sp,
             modifier = Modifier.padding(top = 6.dp, bottom = 16.dp),
