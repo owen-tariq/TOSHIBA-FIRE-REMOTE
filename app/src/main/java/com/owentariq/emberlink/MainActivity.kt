@@ -48,6 +48,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.owentariq.emberlink.data.Commands
+import com.owentariq.emberlink.data.HuntCandidate
 import com.owentariq.emberlink.data.IrCommand
 import com.owentariq.emberlink.data.ProfileStore
 import com.owentariq.emberlink.data.Settings
@@ -109,6 +110,25 @@ class MainActivity : ComponentActivity() {
         // system volume UI never appears.
         if (event.action == KeyEvent.ACTION_DOWN) ir.send(cmd)
         return true
+    }
+
+    /** The hunt result currently in force, shown back to the user as confirmation. */
+    private var adoptedCandidate by mutableStateOf<HuntCandidate?>(null)
+
+    /**
+     * Adopt a code that demonstrably worked.
+     *
+     * The command byte itself is discarded — it was only ever a probe. What matters is
+     * the protocol and address it proved, which every other button then inherits.
+     */
+    private fun adoptCandidate(c: HuntCandidate) {
+        settings.protocol = c.protocol
+        settings.addressOverride = c.address
+        settings.subAddressOverride = c.subAddress
+        settings.hasConfirmedWorkingCode = true
+        adoptedCandidate = c
+        profileRevision++
+        toast("Saved: ${c.protocol.label} ${c.addressHex} — try the Remote tab")
     }
 
     private fun send(cmd: IrCommand) {
@@ -229,6 +249,11 @@ class MainActivity : ComponentActivity() {
                         framesSent = ir.framesSent.get(),
                         onBlast = { ir.send(Commands.POWER) },
                         onSettingsChanged = { profileRevision++ },
+                        onHuntFire = { c ->
+                            ir.sendCandidate(c.protocol, c.address, c.subAddress, c.command)
+                        },
+                        onHuntAdopt = ::adoptCandidate,
+                        adopted = adoptedCandidate,
                     )
                 }
             }
