@@ -29,6 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Dialpad
+import androidx.compose.material.icons.rounded.MonitorHeart
 import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material.icons.rounded.Science
 import androidx.compose.material.icons.rounded.SettingsRemote
@@ -49,9 +50,11 @@ import androidx.compose.ui.unit.sp
 import com.owentariq.emberlink.data.Commands
 import com.owentariq.emberlink.data.IrCommand
 import com.owentariq.emberlink.data.ProfileStore
+import com.owentariq.emberlink.data.Settings
 import com.owentariq.emberlink.ir.IrService
 import com.owentariq.emberlink.ui.Charcoal
 import com.owentariq.emberlink.ui.CodeLabScreen
+import com.owentariq.emberlink.ui.DiagnosticsScreen
 import com.owentariq.emberlink.ui.Ember
 import com.owentariq.emberlink.ui.EmberlinkTheme
 import com.owentariq.emberlink.ui.KeyboardScreen
@@ -64,6 +67,7 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var ir: IrService
     private lateinit var profile: ProfileStore
+    private lateinit var settings: Settings
 
     /** Bumped whenever the profile changes, to nudge Compose into recomposing. */
     private var profileRevision by mutableIntStateOf(0)
@@ -71,7 +75,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        ir = IrService(this)
+        settings = Settings(this)
+        ir = IrService(this, settings)
         profile = ProfileStore(this)
 
         // A remote that dims out mid-scroll is useless.
@@ -79,11 +84,10 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             EmberlinkTheme {
-                if (!ir.hasEmitter) {
-                    NoEmitterScreen(ir.deviceLabel)
-                } else {
-                    AppScaffold()
-                }
+                // Deliberately not gating the whole app on hasIrEmitter any more:
+                // if the emitter is missing, Diagnostics is the one screen that can
+                // explain why, so the user must still be able to reach it.
+                AppScaffold()
             }
         }
     }
@@ -156,6 +160,7 @@ class MainActivity : ComponentActivity() {
                         Triple("Keypad", Icons.Rounded.Dialpad, 1),
                         Triple("Type", Icons.Rounded.Keyboard, 2),
                         Triple("Code Lab", Icons.Rounded.Science, 3),
+                        Triple("Fix", Icons.Rounded.MonitorHeart, 4),
                     )
                     items.forEach { (label, icon, index) ->
                         NavigationBarItem(
@@ -203,7 +208,7 @@ class MainActivity : ComponentActivity() {
                     3 -> CodeLabScreen(
                         enabled = true,
                         targetSlot = codeLabTarget,
-                        onRawSend = { a, s, c -> ir.send(a, s, c) },
+                        onRawSend = { a, s, c -> ir.sendRaw(a, s, c) },
                         onSaveDiscovery = { cmd ->
                             profile.save(cmd)
                             profileRevision++
@@ -211,6 +216,19 @@ class MainActivity : ComponentActivity() {
                         },
                         savedCount = profile.all().size,
                         onExport = ::exportProfile,
+                    )
+
+                    4 -> DiagnosticsScreen(
+                        settings = settings,
+                        deviceLabel = ir.deviceLabel,
+                        hasEmitter = ir.hasEmitter,
+                        managerPresent = ir.managerPresent,
+                        carrierSummary = ir.carrierSummary,
+                        carrierSupported = ir.carrierSupported,
+                        lastError = ir.lastError,
+                        framesSent = ir.framesSent.get(),
+                        onBlast = { ir.send(Commands.POWER) },
+                        onSettingsChanged = { profileRevision++ },
                     )
                 }
             }
