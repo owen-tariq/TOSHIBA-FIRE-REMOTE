@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  An ember: three IR waves radiating from a warm core, on the adaptive-icon
+  108dp canvas with the usual 18dp safe-zone margin.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- emitter core -->
+    <path
+        android:fillColor="#FF7A18"
+        android:pathData="M38,54m-9,0a9,9 0,1 1,18 0a9,9 0,1 1,-18 0" />
+
+    <!-- wave 1 -->
+    <path
+        android:strokeColor="#FF7A18"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M55,40 A18,18 0 0 1 55,68" />
+
+    <!-- wave 2 -->
+    <path
+        android:strokeColor="#FF9A45"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M66,31 A30,30 0 0 1 66,77" />
+
+    <!-- wave 3 -->
+    <path
+        android:strokeColor="#FFBE84"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M77,22 A42,42 0 0 1 77,86" />
+</vector>
