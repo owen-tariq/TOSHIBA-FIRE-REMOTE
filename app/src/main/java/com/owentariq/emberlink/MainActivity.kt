@@ -29,6 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Dialpad
+import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material.icons.rounded.Science
 import androidx.compose.material.icons.rounded.SettingsRemote
 import androidx.compose.material3.Icon
@@ -53,6 +54,7 @@ import com.owentariq.emberlink.ui.Charcoal
 import com.owentariq.emberlink.ui.CodeLabScreen
 import com.owentariq.emberlink.ui.Ember
 import com.owentariq.emberlink.ui.EmberlinkTheme
+import com.owentariq.emberlink.ui.KeyboardScreen
 import com.owentariq.emberlink.ui.KeypadScreen
 import com.owentariq.emberlink.ui.RemoteScreen
 import com.owentariq.emberlink.ui.TextMuted
@@ -141,7 +143,7 @@ class MainActivity : ComponentActivity() {
 
         val jumpToCodeLab: (String) -> Unit = { slot ->
             codeLabTarget = slot
-            tab = 2
+            tab = 3
             toast("No code known for that key yet — sweep for it here")
         }
 
@@ -152,7 +154,8 @@ class MainActivity : ComponentActivity() {
                     val items = listOf(
                         Triple("Remote", Icons.Rounded.SettingsRemote, 0),
                         Triple("Keypad", Icons.Rounded.Dialpad, 1),
-                        Triple("Code Lab", Icons.Rounded.Science, 2),
+                        Triple("Type", Icons.Rounded.Keyboard, 2),
+                        Triple("Code Lab", Icons.Rounded.Science, 3),
                     )
                     items.forEach { (label, icon, index) ->
                         NavigationBarItem(
@@ -192,7 +195,12 @@ class MainActivity : ComponentActivity() {
                         onUnmappedTapped = jumpToCodeLab,
                     )
 
-                    2 -> CodeLabScreen(
+                    2 -> KeyboardScreen(
+                        enabled = true,
+                        onSendCommand = ::send,
+                    )
+
+                    3 -> CodeLabScreen(
                         enabled = true,
                         targetSlot = codeLabTarget,
                         onRawSend = { a, s, c -> ir.send(a, s, c) },
