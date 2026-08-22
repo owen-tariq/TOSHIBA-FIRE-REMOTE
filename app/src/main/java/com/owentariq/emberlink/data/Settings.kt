@@ -2,6 +2,7 @@ package com.owentariq.emberlink.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.owentariq.emberlink.ir.IrProtocol
 
 /**
  * Tunables that exist because infrared is a one-way medium.
@@ -51,6 +52,19 @@ class Settings(context: Context) {
         get() = prefs.getInt(KEY_CARRIER, 38_000)
         set(v) = prefs.edit().putInt(KEY_CARRIER, v).apply()
 
+    /**
+     * Protocol used for every normal button press. Set automatically when Auto-Hunt
+     * finds a code that works, so the user never has to know what NEC means.
+     */
+    var protocol: IrProtocol
+        get() = IrProtocol.fromName(prefs.getString(KEY_PROTOCOL, IrProtocol.NEC.name))
+        set(v) = prefs.edit().putString(KEY_PROTOCOL, v.name).apply()
+
+    /** True once Auto-Hunt has confirmed a working code, so the UI can stop nagging. */
+    var hasConfirmedWorkingCode: Boolean
+        get() = prefs.getBoolean(KEY_CONFIRMED, false)
+        set(v) = prefs.edit().putBoolean(KEY_CONFIRMED, v).apply()
+
     fun resetToDefaults() {
         prefs.edit().clear().apply()
     }
@@ -66,6 +80,8 @@ class Settings(context: Context) {
         private const val KEY_ADDR = "address"
         private const val KEY_SUB = "sub_address"
         private const val KEY_CARRIER = "carrier_hz"
+        private const val KEY_PROTOCOL = "protocol"
+        private const val KEY_CONFIRMED = "confirmed_working"
 
         /** Address presets worth trying when nothing responds. */
         val ADDRESS_PRESETS = listOf(
