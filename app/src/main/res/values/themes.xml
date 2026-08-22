@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Emberlink" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#FF121316</item>
+        <item name="android:navigationBarColor">#FF17181C</item>
+        <item name="android:windowBackground">#FF121316</item>
+    </style>
+</resources>
