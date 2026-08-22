@@ -95,8 +95,11 @@ class IrService(context: Context, private val settings: Settings) {
 
         val addr = if (applyOverride) settings.addressOverride else address
         val sub = if (applyOverride) settings.subAddressOverride else subAddress
-        val pattern = NecEncoder.frame(addr, sub, command)
-        val carrier = settings.carrierHz
+        val proto = settings.protocol
+        val pattern = Protocols.encode(proto, addr, sub, command)
+        // The protocol dictates the carrier; the manual override only applies to NEC,
+        // where 38 kHz is the norm but a few panels want something slightly different.
+        val carrier = if (proto == IrProtocol.NEC) settings.carrierHz else proto.carrierHz
         val repeats = settings.framesPerPress
         val gap = settings.frameGapMs.toLong()
 
@@ -126,6 +129,35 @@ class IrService(context: Context, private val settings: Settings) {
 
     fun send(command: IrCommand): Boolean =
         send(command.address, command.subAddress, command.command)
+
+    /**
+     * Fire one hunt candidate exactly as specified — its own protocol, address and
+     * carrier, ignoring every saved setting. Auto-Hunt depends on this: the entire
+     * point is to test combinations the current settings would otherwise override.
+     */
+    fun sendCandidate(
+        protocol: IrProtocol,
+        address: Int,
+        subAddress: Int,
+        command: Int,
+    ): Boolean {
+        val mgr = manager ?: run {
+            lastError = "No ConsumerIrManager on this device"
+            return false
+        }
+        val pattern = Protocols.encode(protocol, address, subAddress, command)
+        transmitter.execute {
+            try {
+                mgr.transmit(protocol.carrierHz, pattern)
+                framesSent.incrementAndGet()
+                lastError = null
+            } catch (t: Throwable) {
+                lastError = "${t.javaClass.simpleName}: ${t.message ?: "no detail"}"
+                Log.w(TAG, "candidate transmit failed", t)
+            }
+        }
+        return true
+    }
 
     /** Raw send that ignores the address override — used by Code Lab sweeps. */
     fun sendRaw(address: Int, subAddress: Int, command: Int): Boolean =
